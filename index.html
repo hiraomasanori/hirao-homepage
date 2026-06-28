@@ -309,6 +309,34 @@
         min-height: 440px;
         padding: 24px 20px;
       }
+      .hero-header {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto 28px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.hero-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
     }
   </style>
 </head>
@@ -316,21 +344,15 @@
 <body>
   <div class="site">
 
-    <header class="header">
-      <div class="header-left">
-        <h1>平尾正憲</h1>
-        <p>三鷹市</p>
-      </div>
+    <header class="hero-header">
+  <img src="header.jpg" alt="平尾正憲 三鷹市 将来世代に責任ある政治へ 安定と調和を次世代へ" class="hero-image">
 
-      <div class="header-center">
-        <p class="main-message">将来世代に責任ある政治へ</p>
-        <p class="sub-message">安定と調和を次世代へ</p>
-      </div>
-
-      <div class="photo-box">
-        <img src="profile.jpg" alt="平尾正憲の写真">
-      </div>
-    </header>
+  <div class="sr-only">
+    <h1>平尾正憲（三鷹市）</h1>
+    <p>将来世代に責任ある政治へ</p>
+    <p>安定と調和を次世代へ</p>
+  </div>
+</header>
 
     <main class="main-layout">
 
