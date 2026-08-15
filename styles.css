@@ -162,6 +162,11 @@ a { color: inherit; }
 
 @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
+@media (min-width: 821px) {
+  .form-field.pc-half { width: 50%; }
+  .check-row.pc-two-thirds { width: 66.6667%; }
+}
+
 @media (max-width: 920px) {
   .social-grid { grid-template-columns: repeat(3, 1fr); }
 }

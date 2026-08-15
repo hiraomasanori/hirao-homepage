@@ -117,6 +117,14 @@
     return document.getElementById(id)?.value ?? "";
   }
 
+  function scrollDonationTarget(target) {
+    if (!target || !contentPanel || window.innerWidth <= 820) return;
+    const panelRect = contentPanel.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const targetTop = contentPanel.scrollTop + targetRect.top - panelRect.top - 14;
+    contentPanel.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+  }
+
   function showConfirmation() {
     const receipt = document.getElementById("receiptRequest")?.checked;
     const amount = Number(fieldValue("donorAmount")).toLocaleString("ja-JP");
@@ -132,7 +140,7 @@
     inputStep.hidden = true;
     confirmStep.hidden = false;
     donationStep = "confirm";
-    contentPanel.scrollTo({ top: 0, behavior: "smooth" });
+    window.requestAnimationFrame(() => scrollDonationTarget(confirmStep));
   }
 
   if (donationForm) {
@@ -148,7 +156,9 @@
       window.setTimeout(() => {
         donationForm.hidden = true;
         completeStep.hidden = false;
-        contentPanel.scrollTo({ top: 0, behavior: "smooth" });
+        window.requestAnimationFrame(() => {
+          scrollDonationTarget(completeStep.querySelector(".bank-details") || completeStep);
+        });
       }, 0);
     });
   }
