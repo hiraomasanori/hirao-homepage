@@ -66,6 +66,26 @@ const fallbackArticles = [
   url: `https://note.com/${creator}/n/${noteId}`,
 }));
 
+async function getStoredArticles() {
+  try {
+    const stored = JSON.parse(await readFile(path.join(root, "articles.json"), "utf8"));
+    if (!Array.isArray(stored) || stored.length === 0) return fallbackArticles;
+    return stored
+      .map((article) => ({
+        ...article,
+        body: sanitizeNoteHtml(article.body ?? ""),
+      }))
+      .sort((left, right) => {
+        const leftDate = new Date(left.publishedAt ?? String(left.date).replace(/\./g, "-")).valueOf();
+        const rightDate = new Date(right.publishedAt ?? String(right.date).replace(/\./g, "-")).valueOf();
+        return rightDate - leftDate;
+      });
+  } catch (error) {
+    console.warn("保存済みarticles.jsonを読み込めませんでした。", error.message);
+    return fallbackArticles;
+  }
+}
+
 async function getJson(url) {
   const response = await fetch(url, {
     headers: { Accept: "application/json", "User-Agent": "hirao-homepage-github-pages" },
@@ -97,10 +117,10 @@ async function getArticles() {
         body: "",
         url: item.noteUrl ?? `https://note.com/${creator}/n/${item.key}`,
       }));
-    return articles.length ? articles : fallbackArticles;
+    return articles.length ? articles : getStoredArticles();
   } catch (error) {
     console.warn("NOTE一覧を取得できなかったため、保存済み一覧を使います。", error.message);
-    return fallbackArticles;
+    return getStoredArticles();
   }
 }
 
@@ -159,9 +179,8 @@ await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 
 const articles = await addBodies(await getArticles());
-const templatePath = await firstExisting([
-  path.join(root, "github-pages", "index.template.html"),
-  path.join(root, "index.template.html"),
+const indexPath = await firstExisting([
+  path.join(root, "index.html"),
 ]);
 const siteScriptPath = await firstExisting([
   path.join(root, "github-pages", "site.js"),
@@ -171,17 +190,20 @@ const stylesheetPath = await firstExisting([
   path.join(root, "app", "globals.css"),
   path.join(root, "styles.css"),
 ]);
-const template = await readFile(templatePath, "utf8");
-const serialized = JSON.stringify(articles).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
-const html = template.replace("__NOTE_DATA__", serialized);
 const css = (await readFile(stylesheetPath, "utf8"))
   .replace(/^@import\s+["']tailwindcss["'];\s*/m, "")
   .concat("\n[hidden] { display: none !important; }\n");
 
-await writeFile(path.join(output, "index.html"), html);
+await cp(indexPath, path.join(output, "index.html"));
 await writeFile(path.join(output, "styles.css"), css);
 await cp(siteScriptPath, path.join(output, "site.js"));
-await writeFile(path.join(output, "CNAME"), "hiraomasanori.com\n");
+await writeFile(
+  path.join(output, "articles.json"),
+  JSON.stringify(articles).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029"),
+);
+const cnamePath = path.join(root, "CNAME");
+if (await exists(cnamePath)) await cp(cnamePath, path.join(output, "CNAME"));
+else await writeFile(path.join(output, "CNAME"), "hiraomasanori.com\n");
 await writeFile(path.join(output, ".nojekyll"), "");
 await copyAssets();
 
